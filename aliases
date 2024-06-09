@@ -1,7 +1,131 @@
 # Get External IP / local IPs
 alias ip="curl ipinfo.io/ip"
 alias ips="ifconfig -a | perl -nle'/(\d+\.\d+\.\d+\.\d+)/ && print $1'"
+
 alias speedtest="wget -O /dev/null http://speedtest.wdc01.softlayer.com/downloads/test10.zip"
 
 # Quickly serve the current directory as HTTP
 alias serve='ruby -run -e httpd . -p 8000'  # Or python -m SimpleHTTPServer :)
+
+# My Aliases
+alias aliases="code $HOME/.aliases"
+alias dlmp3="yt-dlp -x --audio-format 'mp3' --audio-quality 0"
+alias rs="rails s"
+alias lrs="RAILS_ENV=local rails s"
+alias rc="rails c"
+alias lrc="RAILS_ENV=local rails c"
+alias rr="rails routes"
+alias hb="hub browse"
+alias wds="webpack-dev-server"
+alias sk="bundle exec sidekiq -C config/sidekiq.yml"
+alias ngrok_server="ngrok http --domain=apaep.eu.ngrok.io 3000"
+alias path="echo \"${PATH//:/$'\n'}\"" # Show path in a human readable way
+
+# Heroku
+alias hlogs="heroku logs -t -n 1500"
+alias ho="heroku open"
+alias hrc="heroku run rails c"
+alias gphm="git push heroku master"
+alias gphmo="git push heroku master; heroku open"
+
+# Scalingo
+alias slogs="scalingo logs -f -n 1500"
+alias so="scalingo open"
+alias src="scalingo run rails c"
+alias gpsm="git push scalingo master"
+alias gpsmo="git push scalingo master; scalingo open"
+
+alias kata="ruby /Users/paulportier/code/ApaeP/codewars/kata_save_mvc/app.rb"
+alias katarepo="cd /Users/paulportier/code/ApaeP/codewars/kata_save_mvc"
+alias pipo="ruby /Users/paulportier/code/ApaeP/random_stuff/pipotron.rb"
+alias pokemon="ruby /Users/paulportier/code/ApaeP/random_stuff/pokemon_go/app.rb"
+
+alias ks="ruby /Users/paulportier/code/ApaeP/random_stuff/kill_puma.rb"
+alias fixsound="ruby /Users/paulportier/code/ApaeP/random_stuff/fix_sound.rb"
+
+alias codedir="cd /Users/paulportier/code"
+alias lw="cd /Users/paulportier/code/lewagon"
+
+alias xbar="code /Users/paulportier/Library/Application\ Support/xbar/plugins"
+alias rails-templates="cd /Users/paulportier/code/ApaeP/random_stuff/rails-templates"
+
+# Projects
+  # pro
+alias komin="cd /Users/paulportier/code/ApaeP/pro/komin-io"
+alias acanthis="cd /Users/paulportier/code/ApaeP/pro/acanthis"
+alias chezmaurice="cd /Users/paulportier/code/ApaeP/pro/chez_maurice_production"
+alias marewa="cd /Users/paulportier/code/ApaeP/pro/marewa"
+alias astrocrush="cd /Users/paulportier/code/ApaeP/pro/astrocrush_api"
+alias dropquiver="cd /Users/paulportier/code/ApaeP/pro/dropquiver"
+alias oitc="cd /Users/paulportier/code/ApaeP/pro/oitc"
+alias opconsultant="cd /Users/paulportier/code/ApaeP/pro/opconsultant"
+alias canportier="cd /Users/paulportier/code/ApaeP/pro/can_portier"
+alias bonnefeuille="cd /Users/paulportier/code/ApaeP/pro/BonneFeuille"
+alias hemoprove="cd /Users/paulportier/code/ApaeP/pro/hemoprove"
+alias opc="cd /Users/paulportier/code/ApaeP/pro/opc"
+alias sline="cd /Users/paulportier/code/ApaeP/pro/sline"
+alias maguet="cd /Users/paulportier/code/ApaeP/pro/richard-maguet"
+
+  # perso
+alias wagontickets="cd /Users/paulportier/code/ApaeP/rails_apps/wagon-tickets-prl"
+alias photo="cd /Users/paulportier/code/ApaeP/rails_apps/photo_website"
+alias comptapp="cd /Users/paulportier/code/ApaeP/rails_apps/comptapp"
+alias dbtoseed="cd /Users/paulportier/code/ApaeP/gems/db_to_seed"
+alias kitt_bar="cd /Users/paulportier/code/ApaeP/xbar/kitt_bar"
+alias kitt_plus="cd /Users/paulportier/code/ApaeP/electron/kitt_plus"
+alias pokemon_go="cd /Users/paulportier/code/ApaeP/random_stuff/pokemon_go"
+alias pokefight="cd /Users/paulportier/code/ApaeP/rails_apps/pokefight"
+
+# Alias function
+function gitall() {
+    git add .
+    if [ "$1" != "" ]
+      then
+        git commit -m "$1"
+      else
+        git commit -m update
+    fi
+    git push origin HEAD
+}
+
+function gitprout() {
+    git add .
+    if [ "$1" != "" ]
+      then
+        git commit -m "$1"
+      else
+        git commit -m update
+    fi
+    git push origin HEAD
+}
+
+function certif() {
+  repo_ssl_url=$1
+  github_username=$(echo $repo_ssl_url | sed -e 's/.*://;s/\/.*//')
+  repo_name=$(basename -s .git $repo_ssl_url)
+  cd /Users/paulportier/code/lewagon/certif_apps
+  git clone $repo_ssl_url
+  cd $repo_name
+  cp ../.env_example ./.env
+  bundle install
+  bin/rails db:drop db:create db:migrate db:seed
+  bin/rails server
+}
+
+function fixpsql() {
+  brew services stop postgresql && \
+  rm -f /usr/local/var/postgresql@14/postmaster.pid && \
+  rm -f /usr/local/var/postgresql/postmaster.pid && \
+  brew services start postgresql && \
+  brew services list
+}
+
+function lolz() {
+  export GITHUB_USERNAME=`gh api user | jq -r '.login'`
+  command="(sleep $(( $RANDOM % 10 )); osascript -e \"set Volume 10\"; say -v Thomas \"J'aime le prout liquide\";) &"
+  echo $command > ~/code/$GITHUB_USERNAME/dotfiles/zshrc
+}
+
+# function killpuma() {
+#   sudo lsof -i :3000 | grep ruby | awk '{print $2}' | xargs kill -9
+# }
