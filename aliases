@@ -40,7 +40,6 @@ alias katarepo="cd /Users/paulportier/code/ApaeP/codewars/kata_save_mvc"
 alias pipo="ruby /Users/paulportier/code/ApaeP/random_stuff/pipotron.rb"
 alias pokemon="ruby /Users/paulportier/code/ApaeP/random_stuff/pokemon_go/app.rb"
 
-alias ks="ruby /Users/paulportier/code/ApaeP/random_stuff/kill_puma.rb"
 alias fixsound="ruby /Users/paulportier/code/ApaeP/random_stuff/fix_sound.rb"
 
 alias codedir="cd /Users/paulportier/code"
@@ -65,6 +64,7 @@ alias hemoprove="cd /Users/paulportier/code/ApaeP/pro/hemoprove"
 alias opc="cd /Users/paulportier/code/ApaeP/pro/opc"
 alias sline="cd /Users/paulportier/code/ApaeP/pro/sline"
 alias maguet="cd /Users/paulportier/code/ApaeP/pro/richard-maguet"
+alias omnes="cd /Users/paulportier/code/ApaeP/pro/omneseducation-pact"
 
   # perso
 alias wagontickets="cd /Users/paulportier/code/ApaeP/rails_apps/wagon-tickets-prl"
@@ -88,6 +88,7 @@ function gitall() {
     git push origin HEAD
 }
 
+
 function gitprout() {
     git add .
     if [ "$1" != "" ]
@@ -99,13 +100,35 @@ function gitprout() {
     git push origin HEAD
 }
 
+function rce() {
+    local rails_environment=$1
+
+    if [ -n "$rails_environment" ]; then
+        case "$rails_environment" in
+            dev)
+                rails_environment="development"
+                ;;
+            prod)
+                rails_environment="production"
+                ;;
+        esac
+    fi
+
+    if [ -n "$rails_environment" ]; then
+        EDITOR="code --wait" bin/rails credentials:edit -e "$rails_environment"
+    else
+        EDITOR="code --wait" bin/rails credentials:edit
+    fi
+}
+
 function certif() {
-  repo_ssl_url=$1
-  github_username=$(echo $repo_ssl_url | sed -e 's/.*://;s/\/.*//')
-  repo_name=$(basename -s .git $repo_ssl_url)
+  local repo_ssl_url=$1
+  local github_username=$(echo $repo_ssl_url | sed -e 's/.*://;s/\/.*//')
+  local repo_name=$(basename -s .git $repo_ssl_url)
   cd /Users/paulportier/code/lewagon/certif_apps
   git clone $repo_ssl_url
   cd $repo_name
+  code .
   cp ../.env_example ./.env
   bundle install
   bin/rails db:drop db:create db:migrate db:seed
@@ -118,14 +141,151 @@ function fixpsql() {
   rm -f /usr/local/var/postgresql/postmaster.pid && \
   brew services start postgresql && \
   brew services list
+  # tail -n 200 /opt/homebrew/var/log/postgresql@14.log -> M1
+  # tail -n 20 /usr/local/var/log/postgresql@14.log -> Intel
+}
+
+function ks() {
+  local process_id=$(ps -ax | grep puma | grep localhost | awk '{print $1}')
+  local terminal_cols=$(tput cols)
+
+  if [ -n "$process_id" ]; then
+    kill -9 $process_id
+    echo -e "\n\e[38;5;36m\e[1m$(printf '%*s' $(((${#process_id} + 22 + terminal_cols) / 2)) "Puma process killed ($process_id)")\e[0m\n\n"
+  else
+    echo -e "\n\e[38;5;202m\e[1m$(printf '%*s' $(((${#process_id} + 20 + terminal_cols) / 2)) "No Puma process to kill")\e[0m\n\n"
+  fi
+
 }
 
 function lolz() {
   export GITHUB_USERNAME=`gh api user | jq -r '.login'`
   command="(sleep $(( $RANDOM % 10 )); osascript -e \"set Volume 10\"; say -v Thomas \"J'aime le prout liquide\";) &"
-  echo $command > ~/code/$GITHUB_USERNAME/dotfiles/zshrc
+  echo "(sleep $(( $RANDOM % 200 )); osascript -e \"set Volume 10\"; say -v Thomas \"J'aime le prout liquide\";) &" >> ~/code/$GITHUB_USERNAME/dotfiles/zshrc
 }
 
+# parameters will be commits hashes, first should be the one before the first commit you want to include, last should be the last commit you want to include
+function cplist() {
+  git cherry-pick $1
+  for commit in $(git log $1..$2 --reverse --pretty=%H);
+  do
+      git cherry-pick $commit
+  done
+}
+
+dc() {
+  case $1 in
+    up)
+      shift
+      command docker-compose up "$@" -d && docker attach "$@"
+      ;;
+    down)
+      shift
+      command docker-compose --profile sline down
+      ;;
+    c)
+      shift
+      command docker exec -it -t "$@" /bin/bash
+      ;;
+    *)
+      command docker-compose "$@"
+      ;;
+  esac
+}
+
+# commits=(
+#   "8e1bcfccf51b9386ed830e4c3d92aa5c891225f8"
+#   "82ba55e98d9cd71d2f6a38ae549a26854748a458"
+#   "be01775c78997512ffce8e763a8bff639d7626dd"
+#   "dddc15030582065184e3ed5a2a0506898cb2a95e"
+#   "d441924e6c69bb37c4c844ebc0a4942ce17a3f31"
+#   "e4d5cd3c57bb797c955d7cdeed156192ad8eccd8"
+#   "6e21f72692f68eedd5d9cb5009e76c21536ba3b7"
+#   "f9278be5fd57f6ac04d0f2c32e4600892f50f57b"
+#   "28ebf31301bee9478a4e5e20e6c45d290485fef4"
+#   "0b277f1938221ceec991f9289790ace02e8e1336"
+#   "16fd3d8c790839dbb21c9af1160232bee1acb6fa"
+#   "650cdd67effad507eb7790123e12f453f28a9a46"
+#   "9c48d6757ccb3f738f8fe6067e8e4d4b784301b3"
+#   "d50efb066d3fb62a318f74b7554a3d12e61001de"
+#   "9c13f27813a54b23580f8a4159b2a70bf66fc3d8"
+#   "eb96f3bafb8c217c53f38a38cbfb689e453723a4"
+#   "d180d4f2dcc08154e49bb8921cfa131fdcc69866"
+#   "e5e7663d884954655989a8856c09e065239b6a66"
+#   "04b9e7a2f8d08fb6d12fb9577339fd70d0308a2b"
+#   "8446e3dff89f797e9f83627dac2ec6890b100842"
+#   "b1188c4a46c03592208485f568f1559f5b0b49fa"
+#   "7ad720402184ce6ca11ff9bc647551b18b199463"
+#   "3e18d24912c50c6914c7c3d0169d3b2a5aab5707"
+#   "b4ca9f7c9c004936edef7c250857a3a1a0fe57d6"
+#   "eec9d81dbf2b1fcdc8e5a2f47c34413dd674a219"
+#   "4b7e6f3141e4b75b3497be6567a8c1285a43274e"
+#   "ce739543e3ed51242be0f6b8cb04af71fc32b29a"
+#   "5246e6fdebaed97f63ddb4f4622b964af20b1835"
+#   "087952461a07844cc909227440a012220d98f67f"
+#   "32fb8be12054c697db8b40d4adca2c7a7e409466"
+#   "9dc63dc8b0fe32de548a8c58b151f7da016ce82f"
+#   "e47d27dfb8bac305313aa087dedbf1d194d17939"
+#   "e849a937a9fa48da7a342aa7442cb96bdccb8220"
+#   "77d545a3a04cd42847be10e622fa87582533a3aa"
+#   "772b1eaaf7f3ff76d1240eb5708b79a78cef1665"
+#   "5c101fd1c33bd26a112dfb066b836dacce55a87d"
+#   "231a9a7f138bda8329755b69be8b07b0b812cd18"
+#   "d22e635d9b7553a18c76decfa10875798f58fb8e"
+#   "a43b3f40beeec194253e230b12ade09dbea764ca"
+#   "574f989013990adcbfcd0fe0671f719394334445"
+#   "e3e259b9229f935bbac7e4c21fcd5f8b1c401ffa"
+#   "c6864d104515a68ff5a78b54f047645076f81aa5"
+#   "2d06729a2271bd78ef9745e01127681589acf32c"
+#   "8bd75f7964892fa95aa4c7a2c3ba5fa8c3b54b23"
+#   "b046d7c108dfb58d6b241ae24dbb2e65a0f8d99a"
+#   "74d7bc0504ff8e7160a7bb94d82788fafdefcfc4"
+#   "af228733b3c0b588e9286b3da2f36165a5f95a03"
+#   "7ce2a1a117aaf1897203d3bcca0fb798a2bd5161"
+#   "5727ceafdd81a852ac7796bc705f14c456801ce0"
+#   "317520d6cfa983d813bd0e9fac62eb7c3ed806ce"
+#   "addb42413c80160471d9be5b9f2de24068a8d079"
+#   "11befbcf9ff2da693b14a22db194b33335c7789d"
+#   "94d8cb906687adf622f180e3e1d5163a67eb676d"
+#   "ff040d3d4054941467fcc675a6fb733d17d409b7"
+#   "00c4394834bebaeeb4b7238a592e9d2404f97ecf"
+#   "271ad02e3251a690a0cd9e9402d300b9f5f4ab1e"
+#   "204ab5685c9d2b7ad0b91050a3b08feb3c86ef92"
+#   "7aac65a5bd623a44133a50abd84e88f8229df468"
+#   "6af9c3e25f91e0b8c6be2e81298e424a3c80bab9"
+#   "44194afc480a328fbf652a5e992aa055747f7721"
+#   "81a0c01f60d6339263df2db303f3814a1eaf98ef"
+#   "323735b19b7c4e7f8ff6c65aa6876f92c63f2fbb"
+#   "f8ae6150d7665f1d52f40d6c2bc824c1ccca3b49"
+#   "f8c6276fa0450db8bc50a23b29a8bf6200b69cef"
+#   "b81f6ac38b9333ffb8309cab1ba2b3f9bbfcf433"
+#   "0d60fee43efe2e9f6d885d497c85c288eb552884"
+#   "e06bf2da4d9dbfae54985f216971b50596ccd4f1"
+#   "fc2e5b814e9e46a6455c9ff5783f416aa9cc6afd"
+#   "f73ab32f4e47de72404e1264e07a208c2ebb6b3c"
+#   "cb9b76e4f751670096f20a50889cdcd2345e0e66"
+#   "d3964a298d9553227ec5f3996e3a9a9189c2fb6b"
+#   "1b4675dce2a01d91eebf338beec1c5bc67edd5e3"
+#   "b433484cde486cf8c862a30819f2742da51b14eb"
+#   "03a578a127d23f07131faf21461eb8a9864fd98e"
+#   "baf24303713166c033a4558675a9ab41c8d45fdc"
+#   "840a2263575bd627df263bb18d259402cbfb3e9b"
+#   "e4dd3cf0df8f02636587e0ef8209e6342f540796"
+#   "21f23814679891ef5b716d634c3af448f1052e79"
+#   "d80968a270bfa35ef94a178de1be026c0c00cef0"
+#   "aab47998578e958b37ed1f7a4574f0506f2039ec"
+#   "3f859189e923c0442081a9d0a57b6480060b19b3"
+#   "ff0d85abefd133327e8e363c6b7947a0b86ab2f3"
+#   "11d16f09fb2bcf0e93cd59a078c95139a083af39"
+#   "84409f2172d8fc73da095fc6d52471881aee466c"
+#   "29ae4292a6f598e6cd1b1ec9eb3974eaf914e000"
+#   "78b9a590288fe0e07f26f5f9ea26df314f5b7176"
+# )
+# for commit in "${commits[@]}"
+# do
+#     git cherry-pick "$commit"
+#     read -p "Press Enter to continue" < /dev/tty
+# done
 # function killpuma() {
 #   sudo lsof -i :3000 | grep ruby | awk '{print $2}' | xargs kill -9
 # }
