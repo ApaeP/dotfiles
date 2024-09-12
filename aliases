@@ -1,7 +1,198 @@
 # Get External IP / local IPs
 alias ip="curl ipinfo.io/ip"
 alias ips="ifconfig -a | perl -nle'/(\d+\.\d+\.\d+\.\d+)/ && print $1'"
+
 alias speedtest="wget -O /dev/null http://speedtest.wdc01.softlayer.com/downloads/test10.zip"
 
 # Quickly serve the current directory as HTTP
 alias serve='ruby -run -e httpd . -p 8000'  # Or python -m SimpleHTTPServer :)
+
+# My Aliases
+alias aliases="code $HOME/.aliases"
+alias dlmp3="yt-dlp -x --audio-format 'mp3' --audio-quality 0"
+alias rs="rails s"
+alias lrs="RAILS_ENV=local rails s"
+alias rc="rails c"
+alias lrc="RAILS_ENV=local rails c"
+alias rr="rails routes"
+alias hb="hub browse"
+alias wds="webpack-dev-server"
+alias sk="bundle exec sidekiq -C config/sidekiq.yml"
+alias ngrok_server="ngrok http --domain=apaep.eu.ngrok.io 3000"
+alias path="echo \"${PATH//:/$'\n'}\"" # Show path in a human readable way
+
+# Heroku
+alias hlogs="heroku logs -t -n 1500"
+alias ho="heroku open"
+alias hrc="heroku run rails c"
+alias gphm="git push heroku master"
+alias gphmo="git push heroku master; heroku open"
+
+# Scalingo
+alias slogs="scalingo logs -f -n 1500"
+alias so="scalingo open"
+alias src="scalingo run rails c"
+alias gpsm="git push scalingo master"
+alias gpsmo="git push scalingo master; scalingo open"
+
+alias kata="ruby /Users/paulportier/code/ApaeP/codewars/kata_save_mvc/app.rb"
+alias katarepo="cd /Users/paulportier/code/ApaeP/codewars/kata_save_mvc"
+alias pipo="ruby /Users/paulportier/code/ApaeP/random_stuff/pipotron.rb"
+alias pokemon="ruby /Users/paulportier/code/ApaeP/random_stuff/pokemon_go/app.rb"
+
+alias ks="ruby /Users/paulportier/code/ApaeP/random_stuff/kill_puma.rb"
+alias fixsound="ruby /Users/paulportier/code/ApaeP/random_stuff/fix_sound.rb"
+
+alias codedir="cd /Users/paulportier/code"
+alias lw="cd /Users/paulportier/code/lewagon"
+
+alias xbar="code /Users/paulportier/Library/Application\ Support/xbar/plugins"
+alias rails-templates="cd /Users/paulportier/code/ApaeP/random_stuff/rails-templates"
+
+# Projects
+  # pro
+alias komin="cd /Users/paulportier/code/ApaeP/pro/komin-io"
+alias acanthis="cd /Users/paulportier/code/ApaeP/pro/acanthis"
+alias chezmaurice="cd /Users/paulportier/code/ApaeP/pro/chez_maurice_production"
+alias marewa="cd /Users/paulportier/code/ApaeP/pro/marewa"
+alias astrocrush="cd /Users/paulportier/code/ApaeP/pro/astrocrush_api"
+alias dropquiver="cd /Users/paulportier/code/ApaeP/pro/dropquiver"
+alias oitc="cd /Users/paulportier/code/ApaeP/pro/oitc"
+alias opconsultant="cd /Users/paulportier/code/ApaeP/pro/opconsultant"
+alias canportier="cd /Users/paulportier/code/ApaeP/pro/can_portier"
+alias bonnefeuille="cd /Users/paulportier/code/ApaeP/pro/BonneFeuille"
+alias hemoprove="cd /Users/paulportier/code/ApaeP/pro/hemoprove"
+alias opc="cd /Users/paulportier/code/ApaeP/pro/opc"
+alias sline="cd /Users/paulportier/code/ApaeP/pro/sline"
+alias maguet="cd /Users/paulportier/code/ApaeP/pro/richard-maguet"
+alias omnes="cd /Users/paulportier/code/ApaeP/pro/omneseducation-pact"
+
+  # perso
+alias wagontickets="cd /Users/paulportier/code/ApaeP/rails_apps/wagon-tickets-prl"
+alias photo="cd /Users/paulportier/code/ApaeP/rails_apps/photo_website"
+alias comptapp="cd /Users/paulportier/code/ApaeP/rails_apps/comptapp"
+alias dbtoseed="cd /Users/paulportier/code/ApaeP/gems/db_to_seed"
+alias kitt_bar="cd /Users/paulportier/code/ApaeP/xbar/kitt_bar"
+alias kitt_plus="cd /Users/paulportier/code/ApaeP/electron/kitt_plus"
+alias pokemon_go="cd /Users/paulportier/code/ApaeP/random_stuff/pokemon_go"
+alias pokefight="cd /Users/paulportier/code/ApaeP/rails_apps/pokefight"
+
+# Alias function
+function gitall() {
+    git add .
+    if [ "$1" != "" ]
+      then
+        git commit -m "$1"
+      else
+        git commit -m update
+    fi
+    git push origin HEAD
+}
+
+function gitprout() {
+    git add .
+    if [ "$1" != "" ]
+      then
+        git commit -m "$1"
+      else
+        git commit -m update
+    fi
+    git push origin HEAD
+}
+
+function rce() {
+    local rails_environment=$1
+
+    if [ -n "$rails_environment" ]; then
+        case "$rails_environment" in
+            dev)
+                rails_environment="development"
+                ;;
+            prod)
+                rails_environment="production"
+                ;;
+        esac
+    fi
+
+    if [ -n "$rails_environment" ]; then
+        EDITOR="code --wait" bin/rails credentials:edit -e "$rails_environment"
+    else
+        EDITOR="code --wait" bin/rails credentials:edit
+    fi
+}
+
+function certif() {
+  local repo_ssl_url=$1
+  local github_username=$(echo $repo_ssl_url | sed -e 's/.*://;s/\/.*//')
+  local repo_name=$(basename -s .git $repo_ssl_url)
+  cd /Users/paulportier/code/lewagon/certif_apps
+  git clone $repo_ssl_url
+  cd $repo_name
+  code .
+  cp ../.env_example ./.env
+  bundle install
+  bin/rails db:drop db:create db:migrate db:seed
+  bin/rails server
+}
+
+function fixpsql() {
+  brew services stop postgresql && \
+  rm -f /usr/local/var/postgresql@14/postmaster.pid && \
+  rm -f /usr/local/var/postgresql/postmaster.pid && \
+  brew services start postgresql && \
+  brew services list
+  # tail -n 200 /opt/homebrew/var/log/postgresql@14.log -> M1
+  # tail -n 20 /usr/local/var/log/postgresql@14.log -> Intel
+}
+
+function ks() {
+  local process_id=$(ps -ax | grep puma | grep localhost | awk '{print $1}')
+  local terminal_cols=$(tput cols)
+
+  if [ -n "$process_id" ]; then
+    kill -9 $process_id
+    echo -e "\n\e[38;5;36m\e[1m$(printf '%*s' $(((${#process_id} + 22 + terminal_cols) / 2)) "Puma process killed ($process_id)")\e[0m\n\n"
+  else
+    echo -e "\n\e[38;5;202m\e[1m$(printf '%*s' $(((${#process_id} + 20 + terminal_cols) / 2)) "No Puma process to kill")\e[0m\n\n"
+  fi
+
+}
+
+function lolz() {
+  export GITHUB_USERNAME=`gh api user | jq -r '.login'`
+  command="(sleep $(( $RANDOM % 10 )); osascript -e \"set Volume 10\"; say -v Thomas \"J'aime le prout liquide\";) &"
+  echo $command > ~/code/$GITHUB_USERNAME/dotfiles/zshrc
+}
+
+# parameters will be commits hashes, first should be the one before the first commit you want to include, last should be the last commit you want to include
+function cplist() {
+  git cherry-pick $1
+  for commit in $(git log $1..$2 --reverse --pretty=%H);
+  do
+      git cherry-pick $commit
+  done
+}
+
+dc() {
+  case $1 in
+    up)
+      shift
+      command docker-compose up "$@" -d && docker attach "$@"
+      ;;
+    down)
+      shift
+      command docker-compose --profile sline down
+      ;;
+    c)
+      shift
+      command docker exec -it -t "$@" /bin/bash
+      ;;
+    *)
+      command docker-compose "$@"
+      ;;
+  esac
+}
+
+# function killpuma() {
+#   sudo lsof -i :3000 | grep ruby | awk '{print $2}' | xargs kill -9
+# }
