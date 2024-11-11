@@ -10,8 +10,10 @@
   remote = yellow
 
 [core]
+  excludesFile = ~/.gitignore
   pager = less -FRSX
-	editor = '/Applications/Sublime Text.app/Contents/SharedSupport/bin/subl' -n -w
+	# editor = '/Applications/Sublime Text.app/Contents/SharedSupport/bin/subl' -n -w
+  editor = 'cursor --wait'
 
 [alias]
   co = checkout
@@ -25,6 +27,7 @@
 
   # Clean merged branches
   sweep = !git branch --merged master | grep -v 'master$' | xargs git branch -d && git remote prune origin
+  sweep-main = !git branch --merged main | grep -v 'main$' | xargs git branch -d && git remote prune origin
 
   # http://www.jukie.net/bart/blog/pimping-out-git-log
   lg = log --graph --all --pretty=format:'%Cred%h%Creset - %s %Cgreen(%cr) %C(bold blue)%an%Creset %C(yellow)%d%Creset'
@@ -49,3 +52,10 @@
 [user]
 	email = paulportier@gmail.com
 	name = Paul Portier
+[filter "lfs"]
+	process = git-lfs filter-process
+	required = true
+	clean = git-lfs clean -- %f
+	smudge = git-lfs smudge -- %f
+[init]
+	defaultBranch = master

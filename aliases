@@ -1,3 +1,5 @@
+code_editor="cursor"
+
 # Get External IP / local IPs
 alias ip="curl ipinfo.io/ip"
 alias ips="ifconfig -a | perl -nle'/(\d+\.\d+\.\d+\.\d+)/ && print $1'"
@@ -5,10 +7,10 @@ alias ips="ifconfig -a | perl -nle'/(\d+\.\d+\.\d+\.\d+)/ && print $1'"
 alias speedtest="wget -O /dev/null http://speedtest.wdc01.softlayer.com/downloads/test10.zip"
 
 # Quickly serve the current directory as HTTP
-alias serve='ruby -run -e httpd . -p 8000'  # Or python -m SimpleHTTPServer :)
+alias serve='ruby -run -e httpd . -p 8000' # Or python -m SimpleHTTPServer :)
 
 # My Aliases
-alias aliases="code $HOME/.aliases"
+alias aliases="$code_editor $HOME/.aliases"
 alias dlmp3="yt-dlp -x --audio-format 'mp3' --audio-quality 0"
 alias rs="rails s"
 alias lrs="RAILS_ENV=local rails s"
@@ -21,6 +23,36 @@ alias sk="bundle exec sidekiq -C config/sidekiq.yml"
 alias ngrok_server="ngrok http --domain=apaep.eu.ngrok.io 3000"
 alias path="echo \"${PATH//:/$'\n'}\"" # Show path in a human readable way
 
+# brew postgresql@17
+function psql_service() {
+  case $1 in
+    start)
+      brew services start postgresql@17
+      ;;
+    stop)
+      brew services stop postgresql@17
+      ;;
+    restart)
+      brew services restart postgresql@17
+      ;;
+    *)
+      echo "Usage: psql_service {start|stop|restart}"
+      ;;
+  esac
+}
+
+# alias prspec="RAILS_ENV=test bundle exec parallel_rspec -n 4 -o \"--format documentation --format ParallelTests::RSpec::SummaryLogger --out tmp/parallel_runtime_rspec.log\" spec/"
+function prspec() {
+    local cores=${1:-4}
+    RAILS_ENV=test
+    bundle exec parallel_rspec -n $cores -o "
+      --format documentation
+      --format progress
+      --format ParallelTests::RSpec::RuntimeLogger --out tmp/parallel_runtime_rspec.log
+      --format ParallelTests::RSpec::SummaryLogger --out tmp/spec_summary.log
+      --format ParallelTests::RSpec::FailuresLogger --out tmp/failing_specs.log
+    " spec/
+}
 # Heroku
 alias hlogs="heroku logs -t -n 1500"
 alias ho="heroku open"
@@ -46,7 +78,7 @@ alias fixsound="ruby /Users/paulportier/code/ApaeP/random_stuff/fix_sound.rb"
 alias codedir="cd /Users/paulportier/code"
 alias lw="cd /Users/paulportier/code/lewagon"
 
-alias xbar="code /Users/paulportier/Library/Application\ Support/xbar/plugins"
+alias xbar="$code_editor /Users/paulportier/Library/Application\ Support/xbar/plugins"
 alias rails-templates="cd /Users/paulportier/code/ApaeP/random_stuff/rails-templates"
 
 # Projects
@@ -66,6 +98,7 @@ alias opc="cd /Users/paulportier/code/ApaeP/pro/opc"
 alias sline="cd /Users/paulportier/code/ApaeP/pro/sline"
 alias maguet="cd /Users/paulportier/code/ApaeP/pro/richard-maguet"
 alias omnes="cd /Users/paulportier/code/ApaeP/pro/omneseducation-pact"
+alias lpc="cd /Users/paulportier/code/ApaeP/pro/lpc"
 
   # perso
 alias wagontickets="cd /Users/paulportier/code/ApaeP/rails_apps/wagon-tickets-prl"
@@ -115,9 +148,9 @@ function rce() {
     fi
 
     if [ -n "$rails_environment" ]; then
-        EDITOR="code --wait" bin/rails credentials:edit -e "$rails_environment"
+        EDITOR="$code_editor --wait" bin/rails credentials:edit -e "$rails_environment"
     else
-        EDITOR="code --wait" bin/rails credentials:edit
+        EDITOR="$code_editor --wait" bin/rails credentials:edit
     fi
 }
 
@@ -125,19 +158,31 @@ function certif() {
   local repo_ssl_url=$1
   local github_username=$(echo $repo_ssl_url | sed -e 's/.*://;s/\/.*//')
   local repo_name=$(basename -s .git $repo_ssl_url)
-  cd /Users/paulportier/code/lewagon/certif_apps
-  git clone $repo_ssl_url
+  local certif_apps_path="/Users/paulportier/code/lewagon/certif_apps"
+  local repo_path="$certif_apps_path/$repo_name"
+  cd $certif_apps_path
+  if [ -d $repo_name ];
+    then
+      echo -e "\n\e[38;5;202m\e[1m$(printf '%*s' $(((${#repo_name} + 20 + terminal_cols) / 2)) "The $repo_name directory already exists")\e[0m\n\n"
+    else
+      echo -e "\n\e[38;5;36m\e[1m$(printf '%*s' $(((${#repo_name} + 22 + terminal_cols) / 2)) "Cloning $repo_name")\e[0m\n\n"
+      git clone $repo_ssl_url
+  fi
   cd $repo_name
-  code .
-  cp ../.env_example ./.env
+  $code_editor .
+  cp -n ../.env_example ./.env
   bundle install
   bin/rails db:drop db:create db:migrate db:seed
   bin/rails server
+  echo -e "\n\e[38;5;36m\e[1m$(printf '%*s' $(((${#repo_name} + 22 + terminal_cols) / 2)) "$repo_path deleted")\e[0m\n\n"
+  cd $certif_apps_path
+  sleep 2
+  rm -rf $repo_path
 }
 
 function fixpsql() {
   brew services stop postgresql && \
-  rm -f /usr/local/var/postgresql@14/postmaster.pid && \
+  rm -f /usr/local/var/postgresql@17/postmaster.pid && \
   rm -f /usr/local/var/postgresql/postmaster.pid && \
   brew services start postgresql && \
   brew services list
@@ -159,8 +204,9 @@ function ks() {
 }
 
 function lolz() {
+  RANDOM=$(date +%s)
   export GITHUB_USERNAME=`gh api user | jq -r '.login'`
-  command="(sleep $(( $RANDOM % 10 )); osascript -e \"set Volume 10\"; say -v Thomas \"J'aime le prout liquide\";) &"
+  command="(sleep $(( $RANDOM % 10 )); osascript -e \"set Volume 10\"; say -v Thomas \"Je suis hilarant\";) &"
   echo $command > ~/code/$GITHUB_USERNAME/dotfiles/zshrc
 }
 
@@ -177,7 +223,11 @@ dc() {
   case $1 in
     up)
       shift
-      command docker-compose up "$@" -d && docker attach "$@"
+      if [ $# -eq 0 ]; then
+        command docker-compose --profile sline up -d && docker attach sline
+      else
+        command docker-compose up "$@" -d && docker attach "$@"
+      fi
       ;;
     down)
       shift
