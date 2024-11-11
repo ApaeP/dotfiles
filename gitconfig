@@ -13,7 +13,7 @@
   excludesFile = ~/.gitignore
   pager = less -FRSX
 	# editor = '/Applications/Sublime Text.app/Contents/SharedSupport/bin/subl' -n -w
-  editor = 'cursor --wait'
+	editor = '/Applications/Sublime Text.app/Contents/SharedSupport/bin/subl' -n -w
 
 [alias]
   co = checkout
