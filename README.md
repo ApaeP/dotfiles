@@ -1,4 +1,4 @@
-This repository is used by [Le Wagon](https://www.lewagon.com) students.
+This repository is forked from [Le Wagon](https://www.lewagon.com).
 
 ## Toolset
 
